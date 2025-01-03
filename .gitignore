@@ -1,0 +1,41 @@
+# Eclipse settings and project files
+.classpath
+.project
+.settings/
+
+# Maven target directory (build output)
+target/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.idea/
+*.iml
+
+# Build artifacts
+*.class
+*.jar
+*.war
+*.ear
+
+# Node.js artifacts (if applicable in future)
+node_modules/
+npm-debug.log*
+
+# Generated files
+generated-sources/
+maven-status/
+
+# Documentation artifacts
+project_structure.txt
+
+# Ignore sensitive or environment files
+*.env
