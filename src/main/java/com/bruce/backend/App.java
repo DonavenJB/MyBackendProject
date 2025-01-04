@@ -1,19 +1,121 @@
 package com.bruce.backend;
 
-import com.bruce.backend.datetime.DateAndTime;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField; 
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
-public class App {
+import com.bruce.backend.common.Request;
+import com.bruce.backend.common.Reply;
+import com.bruce.backend.server.ManageUser;
+import com.bruce.backend.server.WebContentFetcher;
+
+public class App extends Application {
+    private TextField urlField;
+    private TextArea outputArea;
+    private Button cloneButton;
+    private ProgressIndicator progressIndicator;
+
+    private ManageUser manageUser;
+
+    @Override
+    public void start(Stage primaryStage) {
+        // Initialize UI Components
+        urlField = new TextField();
+        urlField.setPromptText("Enter URL to clone");
+
+        outputArea = new TextArea();
+        outputArea.setWrapText(true);
+        outputArea.setEditable(false); // Make outputArea read-only
+
+        cloneButton = new Button("Clone Website");
+        cloneButton.setOnAction(e -> {
+            String url = urlField.getText().trim();
+            if (!url.isEmpty()) {
+                String formattedURL = formatURL(url);
+                if (!isValidURL(formattedURL)) {
+                    outputArea.appendText("Please enter a valid URL.\n");
+                    return;
+                }
+
+                outputArea.clear();
+                cloneButton.setDisable(true); 
+                progressIndicator.setVisible(true); 
+
+                // Create a Request object with the appropriate constructor
+                // Parameters: call ("clone"), args array (formattedURL), callback_ref (0L)
+                Request req = new Request("clone", new Object[]{formattedURL}, 0L);
+
+                // Start the WebsiteCloneTool
+                new WebContentFetcher(req, manageUser);
+            } else {
+                outputArea.appendText("Please enter a valid URL.\n");
+            }
+        });
+
+        progressIndicator = new ProgressIndicator();
+        progressIndicator.setVisible(false); // Initially hidden
+        progressIndicator.setPrefSize(25, 25);
+
+        manageUser = new ManageUser() {
+            @Override
+            public void write(Object reply) {
+                if (reply instanceof Reply) {
+                    Reply r = (Reply) reply;
+                    String call = r.getCall();
+                    Object content = r.getContent();
+
+                    Platform.runLater(() -> {
+                        if (call.startsWith("error:")) {
+                            outputArea.appendText("Error: " + content + "\n");
+                        } else {
+                            outputArea.appendText(content.toString() + "\n");
+                        }
+                        cloneButton.setDisable(false);
+                        progressIndicator.setVisible(false); 
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        outputArea.appendText("Received invalid reply.\n");
+                        cloneButton.setDisable(false);
+                        progressIndicator.setVisible(false);
+                    });
+                }
+            }
+        };
+
+        VBox root = new VBox(10, urlField, cloneButton, progressIndicator, outputArea);
+        root.setPadding(new Insets(10));
+
+        Scene scene = new Scene(root, 600, 400);
+        primaryStage.setTitle("Website Clone Tool");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private String formatURL(String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return "http://" + url;
+        }
+        return url;
+    }
+    // Is it valid?
+    private boolean isValidURL(String url) {
+        try {
+            new java.net.URL(url);
+            return true;
+        } catch (java.net.MalformedURLException e) {
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
-        String currentDate = DateAndTime.formatDate(System.currentTimeMillis());
-        System.out.println("🔹 Current Date (Local): " + currentDate);
-
-        long fiveDaysInMillis = DateAndTime.days(5);
-        System.out.println("🔹 Five Days in Milliseconds: " + fiveDaysInMillis);
-
-        long parsedDate = DateAndTime.parseDate("01/03/2024 12:00:00", "MM/dd/yyyy HH:mm:ss");
-        System.out.println("🔹 Parsed Date in Milliseconds: " + parsedDate);
-
-        String logDate = DateAndTime.formatLogDate(parsedDate);
-        System.out.println("🔹 Log Date (UTC): " + logDate);
+        launch(args);
     }
 }
