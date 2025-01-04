@@ -1,69 +1,68 @@
 package com.bruce.backend.datetime;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Date; // Add this import
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DateAndTime {
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("MM/dd HH:mm");
+    private static final DateTimeFormatter LOG_FORMAT = DateTimeFormatter.ofPattern("MM/dd HH:mm:ss zzz").withZone(ZoneId.of("UTC"));
+    private static final long MILLIS_PER_DAY = 86_400_000L;
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
-
-    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("MM/dd HH:mm");
-
-    private static final SimpleDateFormat logFormat = new SimpleDateFormat("MM/dd HH:mm:ss zzz");
-
-    static {
-        logFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
-    public static final boolean isDate(String string1, String string2) {
+    public static boolean isDate(String string1, String string2) {
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(string2);
-            simpleDateFormat.parse(string1).getTime();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(string2);
+            LocalDateTime.parse(string1, formatter);
             return true;
-        } catch (Exception exception) {
+        } catch (DateTimeParseException e) {
             return false;
         }
     }
 
-    public static final long days(int n) {
-        return 86400000L * n;
+    public static long days(int n) {
+        return MILLIS_PER_DAY * n;
     }
 
-    public static final long parseDate(String string1, String string2) {
+    public static long parseDate(String string1, String string2) {
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(string2);
-            return simpleDateFormat.parse(string1).getTime();
-        } catch (Exception exception) {
-            LogSanity.logException("Could not parse '" + string1 + "' with '" + string2 + "'", exception, false);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(string2);
+            LocalDateTime dateTime = LocalDateTime.parse(string1, formatter);
+            return dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e) {
+            LogSanity.logException("Could not parse '" + string1 + "' with '" + string2 + "'", e, false);
             return 0L;
         }
     }
 
-    public static final String formatDateAny(String string, long l) {
+    public static String formatDateAny(String string, long l) {
         Date date = new Date(l);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(string);
+        java.text.SimpleDateFormat simpleDateFormat = new java.text.SimpleDateFormat(string);
         return simpleDateFormat.format(date);
     }
 
-    public static final String formatLogDate(long l) {
-        Date date = new Date(l);
-        return logFormat.format(date);
+    public static String formatLogDate(long l) {
+        return LOG_FORMAT.format(Instant.ofEpochMilli(l));
     }
 
-    public static final String formatDate(long l) {
-        Date date = new Date(l);
-        return dateFormat.format(date);
+    public static String formatDate(long l) {
+        return DATE_FORMAT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(l), ZoneId.systemDefault()));
     }
 
-    public static final String formatTime(long l) {
-        Date date = new Date(l);
-        return timeFormat.format(date);
+    public static String formatTime(long l) {
+        return TIME_FORMAT.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(l), ZoneId.systemDefault()));
     }
-    
+
     public static class LogSanity {
-        public static void logException(String message, Throwable t, boolean b) {
-            
+        private static final Logger LOGGER = Logger.getLogger(LogSanity.class.getName());
+        public static void logException(String message, Throwable t, boolean debug) {
+            LOGGER.log(Level.SEVERE, message, t);
+            if (debug) {
+                t.printStackTrace();
+            }
         }
     }
 }
