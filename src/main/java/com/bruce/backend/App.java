@@ -52,7 +52,7 @@ public class App extends Application {
                 // Parameters: call ("clone"), args array (formattedURL), callback_ref (0L)
                 Request req = new Request("clone", new Object[]{formattedURL}, 0L);
 
-                // Start the WebsiteCloneTool
+                // Start the website content fetcher
                 new WebContentFetcher(req, manageUser);
             } else {
                 outputArea.appendText("Please enter a valid URL.\n");

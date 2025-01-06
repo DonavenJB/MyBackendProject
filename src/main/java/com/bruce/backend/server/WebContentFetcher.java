@@ -60,7 +60,7 @@ public class WebContentFetcher implements Runnable, HostnameVerifier, TrustEvent
 
         if (!url.getFile().endsWith("/")) {
             StringStack urlPathStack = new StringStack(url.getFile(), "/");
-            //urlPathStack.pop();
+            // urlPathStack.pop();
             resolvedUrl = StringManipulation.strrep(urlString, url.getFile(), urlPathStack.toString() + "/");
         } else {
             resolvedUrl = urlString;
