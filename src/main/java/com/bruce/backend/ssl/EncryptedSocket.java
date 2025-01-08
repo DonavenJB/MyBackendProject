@@ -13,25 +13,25 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-public class SecureSocket {
+public class EncryptedSocket {
     protected SSLSocket socket = null;
 
     private static byte[] buffer = null;
 
-    public static SSLSocketFactory getMyFactory(TrustEventListener armitageTrustListener) throws Exception {
+    public static SSLSocketFactory getMyFactory(TrustEventListener secureTrustListener) throws Exception {
         SSLContext sSLContext = SSLContext.getInstance("SSL");
-        sSLContext.init(null, new TrustManager[]{new TrustEventManager(armitageTrustListener)}, new SecureRandom());
+        sSLContext.init(null, new TrustManager[]{new TrustEventManager(secureTrustListener)}, new SecureRandom());
         return sSLContext.getSocketFactory();
     }
 
-    public SecureSocket(String string, int n, TrustEventListener armitageTrustListener) throws Exception {
-        SSLSocketFactory sSLSocketFactory = getMyFactory(armitageTrustListener);
+    public EncryptedSocket(String string, int n, TrustEventListener secureTrustListener) throws Exception {
+        SSLSocketFactory sSLSocketFactory = getMyFactory(secureTrustListener);
         this.socket = (SSLSocket) sSLSocketFactory.createSocket(string, n);
         this.socket.setSoTimeout(4048);
         this.socket.startHandshake();
     }
 
-    public SecureSocket(Socket socket) throws Exception {
+    public EncryptedSocket(Socket socket) throws Exception {
         SSLContext sSLContext = SSLContext.getInstance("SSL");
         sSLContext.init(null, new TrustManager[]{new TrustAllTrustManager()}, new SecureRandom());
         SSLSocketFactory sSLSocketFactory = sSLContext.getSocketFactory();

@@ -14,7 +14,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
 import com.bruce.backend.ssl.TrustEventListener;
-import com.bruce.backend.ssl.SecureSocket;
+import com.bruce.backend.ssl.EncryptedSocket;
 
 public class WebContentFetcher implements Runnable, HostnameVerifier, TrustEventListener {
     
@@ -45,7 +45,7 @@ public class WebContentFetcher implements Runnable, HostnameVerifier, TrustEvent
         if (connection instanceof HttpsURLConnection) {
             HttpsURLConnection secureConnection = (HttpsURLConnection) connection;
             secureConnection.setHostnameVerifier(this);
-            secureConnection.setSSLSocketFactory(SecureSocket.getMyFactory(this));
+            secureConnection.setSSLSocketFactory(EncryptedSocket.getMyFactory(this));
         }
 
         connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)");

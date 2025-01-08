@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField; 
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -45,11 +45,10 @@ public class App extends Application {
                 }
 
                 outputArea.clear();
-                cloneButton.setDisable(true); 
-                progressIndicator.setVisible(true); 
+                cloneButton.setDisable(true);
+                progressIndicator.setVisible(true);
 
                 // Create a Request object with the appropriate constructor
-                // Parameters: call ("clone"), args array (formattedURL), callback_ref (0L)
                 Request req = new Request("clone", new Object[]{formattedURL}, 0L);
 
                 // Start the website content fetcher
@@ -63,30 +62,23 @@ public class App extends Application {
         progressIndicator.setVisible(false); // Initially hidden
         progressIndicator.setPrefSize(25, 25);
 
-        manageUser = new ManageUser() {
+        // Create an anonymous subclass of ManageUser with the correct method signature
+        manageUser = new ManageUser(null) {
             @Override
-            public void write(Object reply) {
-                if (reply instanceof Reply) {
-                    Reply r = (Reply) reply;
-                    String call = r.getCall();
-                    Object content = r.getContent();
+            public void write(Reply reply) {
+                Platform.runLater(() -> {
+                    String call = reply.getCall();
+                    Object content = reply.getContent();
 
-                    Platform.runLater(() -> {
-                        if (call.startsWith("error:")) {
-                            outputArea.appendText("Error: " + content + "\n");
-                        } else {
-                            outputArea.appendText(content.toString() + "\n");
-                        }
-                        cloneButton.setDisable(false);
-                        progressIndicator.setVisible(false); 
-                    });
-                } else {
-                    Platform.runLater(() -> {
-                        outputArea.appendText("Received invalid reply.\n");
-                        cloneButton.setDisable(false);
-                        progressIndicator.setVisible(false);
-                    });
-                }
+                    if (call.startsWith("error:")) {
+                        outputArea.appendText("Error: " + content + "\n");
+                    } else {
+                        outputArea.appendText(content.toString() + "\n");
+                    }
+
+                    cloneButton.setDisable(false);
+                    progressIndicator.setVisible(false);
+                });
             }
         };
 
@@ -99,13 +91,15 @@ public class App extends Application {
         primaryStage.show();
     }
 
+    // Formats the URL to ensure it starts with http:// or https://
     private String formatURL(String url) {
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             return "http://" + url;
         }
         return url;
     }
-    // Is it valid?
+
+    // Validates if the URL is well-formed
     private boolean isValidURL(String url) {
         try {
             new java.net.URL(url);
@@ -115,6 +109,7 @@ public class App extends Application {
         }
     }
 
+    // Entry point of the JavaFX application
     public static void main(String[] args) {
         launch(args);
     }
